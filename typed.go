@@ -227,6 +227,11 @@ func New[T any](val any) T {
 }
 
 // Serialized the Typed nodes to JSON
+// TODO: I could try breaking out Typed types from Typed Schemas.
+// Schemas would contain the logic for parsing and serialization.
+// Typed types could be fairly dumb and allow for struct inlining.
+// "NewJsonSchema" could wrap you top level Typed and handle json.
+// Also could make it flexible to support something else like yaml.
 func Serialize(typed Typed) []byte {
 	val := typed.getJsonVal()
 	return val.MarshalTo([]byte{})
