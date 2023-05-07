@@ -232,6 +232,16 @@ func New[T any](val any) T {
 // Typed types could be fairly dumb and allow for struct inlining.
 // "NewJsonSchema" could wrap you top level Typed and handle json.
 // Also could make it flexible to support something else like yaml.
+//
+// Typed types could have all method pointers removed.
+// This could allow "Typed" type constraints without needing pointers everywhere.
+// Would need to move parsing logic back into parser, not the types.
+// Could be tricky for some more complex types with .saveItems()
+//
+// Looks like fastjson.Arena can be used to create new types
+// https://github.com/valyala/fastjson/issues/69
+// Get and Set json val shared types could be removed.
+// This could be computed on the fly similar to parse()
 func Serialize(typed Typed) []byte {
 	val := typed.getJsonVal()
 	return val.MarshalTo([]byte{})
