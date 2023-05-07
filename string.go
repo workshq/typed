@@ -5,7 +5,7 @@ import (
 )
 
 type String struct {
-	// Typed
+	typedShared
 	RawVal string
 }
 

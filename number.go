@@ -12,7 +12,7 @@ type NumberType interface {
 }
 
 type Number[T NumberType] struct {
-	// Typed
+	typedShared
 	RawVal T
 }
 

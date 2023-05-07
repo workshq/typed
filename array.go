@@ -7,13 +7,13 @@ import (
 )
 
 type iArray interface {
-	// Typed
+	Typed
 	anyItem() any
 	saveItems(*[]reflect.Value) error
 }
 
 type Array[T any] struct {
-  // iArray
+  typedShared
 	Items []T
 }
 

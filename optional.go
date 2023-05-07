@@ -7,6 +7,7 @@ import (
 )
 
 type Optional[T any] struct {
+  typedShared
 	RawVal *T
 }
 

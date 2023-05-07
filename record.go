@@ -7,7 +7,7 @@ import (
 )
 
 type iRecord interface {
-	// Typed
+	Typed
 	anyItem() any
 	saveItems(*map[string]reflect.Value) error
 }
@@ -15,7 +15,7 @@ type iRecord interface {
 // Record Object is a mixed bag of properties.
 // Keys are strings and value is user defined.
 type Record[T any] struct {
-  // iRecord
+  typedShared
 	Items map[string]T
 }
 

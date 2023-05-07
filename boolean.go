@@ -3,7 +3,7 @@ package typed
 import "github.com/valyala/fastjson"
 
 type Boolean struct {
-	// Typed
+	typedShared
 	RawVal bool
 }
 

@@ -15,6 +15,8 @@ import (
 
 type Typed interface {
 	parseValue(val *fastjson.Value) error
+	getVal() *fastjson.Value
+	setVal(val *fastjson.Value)
 	Type() Type
 	Check() error
 }
@@ -54,24 +56,13 @@ func parse(val *fastjson.Value, typed Typed) error {
 	var parseErr error
 	switch t {
 	case TypeObject:
-		obj, err := val.Object()
-		if err != nil {
-			return err
-		}
-		parseErr = parseObject(obj, typed.(iObject))
+		parseErr = parseObject(val, typed.(iObject))
 	case TypeArray:
-		arr, err := val.Array()
-		if err != nil {
-			return err
-		}
-		parseErr = parseArray(arr, typed.(iArray))
+		parseErr = parseArray(val, typed.(iArray))
 	case TypeRecord:
-		obj, err := val.Object()
-		if err != nil {
-			return err
-		}
-		parseErr = parseRecord(obj, typed.(iRecord))
+		parseErr = parseRecord(val, typed.(iRecord))
 	case TypeString, TypeNumber, TypeBoolean, TypeOptional:
+		typed.setVal(val)
 		parseErr = typed.parseValue(val)
 	default:
 		return fmt.Errorf("unsupported type %s from %T", t.String(), typed)
@@ -80,15 +71,20 @@ func parse(val *fastjson.Value, typed Typed) error {
 	if parseErr != nil {
 		return parseErr
 	}
-  // TODO: Validate and collect all errors, don't fail after the first.
-  // Similar to this package, should collect errors
-  // https://github.com/gobuffalo/validate
-  // Probably need to wrap fastjson.Object in the custom Value (with Parent connections)
-  // I can add an error collector to the struct.
+	// TODO: Validate and collect all errors, don't fail after the first.
+	// Similar to this package, should collect errors
+	// https://github.com/gobuffalo/validate
+	// Probably need to wrap fastjson.Object in the custom Value (with Parent connections)
+	// I can add an error collector to the struct.
 	return typed.Check()
 }
 
-func parseObject(val *fastjson.Object, typed iObject) error {
+func parseObject(raw *fastjson.Value, typed iObject) error {
+	val, err := raw.Object()
+	if err != nil {
+		return err
+	}
+	typed.setVal(raw)
 	props := typed.anyProps()
 	// logger.Log.Printf("Props %+v", props)
 	r := reflect.ValueOf(props).Elem()
@@ -135,7 +131,12 @@ func parseObject(val *fastjson.Object, typed iObject) error {
 	return nil
 }
 
-func parseArray(val []*fastjson.Value, typed iArray) error {
+func parseArray(raw *fastjson.Value, typed iArray) error {
+	val, err := raw.Array()
+	if err != nil {
+		return err
+	}
+	typed.setVal(raw)
 	item := typed.anyItem()
 	// logger.Log.Printf("Array %+v", item)
 	// items := typed.allItems()
@@ -170,7 +171,12 @@ func parseArray(val []*fastjson.Value, typed iArray) error {
 	return typed.saveItems(&data)
 }
 
-func parseRecord(val *fastjson.Object, typed iRecord) error {
+func parseRecord(raw *fastjson.Value, typed iRecord) error {
+	val, err := raw.Object()
+	if err != nil {
+		return err
+	}
+	typed.setVal(raw)
 	item := typed.anyItem()
 	// logger.Log.Printf("Record %+v", item)
 	innerVal := reflect.ValueOf(item).Elem()
@@ -181,7 +187,7 @@ func parseRecord(val *fastjson.Object, typed iRecord) error {
 	}
 
 	data := make(map[string]reflect.Value, val.Len())
-	var err error
+	err = nil
 	val.Visit(func(k []byte, v *fastjson.Value) {
 		// Stop process if there is an error
 		if err != nil {
@@ -207,4 +213,10 @@ func lowerInitial(str string) string {
 		return string(unicode.ToLower(v)) + str[i+1:]
 	}
 	return str
+}
+
+// Serialized the Typed nodes to JSON
+func ToJSON(typed Typed) []byte {
+	val := typed.getVal()
+	return val.MarshalTo([]byte{})
 }

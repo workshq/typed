@@ -152,6 +152,11 @@ func TestTyped(t *testing.T) {
 	expect(t, schema.Props.ExcludedStr.OrElse(String{RawVal: "fallback"}).Value(), "fallback")
 
 	// t.props.env.props.name
+  start = time.Now()
+  json := ToJSON(schema)
+  duration = time.Since(start)
+	log.Printf("Serialized in %fs or %d microseconds", duration.Seconds(), duration.Microseconds())
+  log.Printf("json: %s", json)
 }
 
 // Testing type definitions instead of type aliases

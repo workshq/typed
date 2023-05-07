@@ -3,12 +3,12 @@ package typed
 import "github.com/valyala/fastjson"
 
 type iObject interface {
-	// Typed
+	Typed
 	anyProps() any
 }
 
 type Object[T any] struct {
-  // iObject
+  typedShared
 	Props T
 }
 
