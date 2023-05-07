@@ -233,8 +233,9 @@ func TestInlined(t *testing.T) {
 	s = data.Props.MoreTags.Items["something"]
 	expect(t, s.Value(), "else")
 
-	// TODO: Test Serialization
-	// snaps.MatchJSON(t, data)
+	// Test Serialization
+	json := Serialize(&data)
+	snaps.MatchJSON(t, json)
 }
 
 // Testing type definitions instead of type aliases
