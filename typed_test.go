@@ -1,9 +1,13 @@
 package typed
 
 import (
+	"bytes"
+	"encoding/json"
 	"log"
 	"testing"
 	"time"
+
+	"github.com/gkampitakis/go-snaps/snaps"
 )
 
 type TypedImage struct {
@@ -113,7 +117,6 @@ func TestTyped(t *testing.T) {
 		return
 	}
 	println()
-	log.Printf("%+v", schema.Props)
 
 	// Basic
 	expect(t, schema.Props.Id.Value(), "gabemx")
@@ -150,13 +153,15 @@ func TestTyped(t *testing.T) {
 	expect(t, schema.Props.ExcludedStr.IsAbsent(), true)
 	expect(t, schema.Props.ExcludedStr.Maybe(), nil)
 	expect(t, schema.Props.ExcludedStr.OrElse(String{RawVal: "fallback"}).Value(), "fallback")
+	// Snapshot
+	snaps.MatchJSON(t , schema)
 
-	// t.props.env.props.name
+	// Test Serialization
   start = time.Now()
   json := ToJSON(schema)
   duration = time.Since(start)
 	log.Printf("Serialized in %fs or %d microseconds", duration.Seconds(), duration.Microseconds())
-  log.Printf("json: %s", json)
+	snaps.MatchJSON(t , json)
 }
 
 // Testing type definitions instead of type aliases
@@ -176,4 +181,11 @@ func expect[T comparable](t *testing.T, got T, want T) {
 	if got != want {
 		t.Errorf("got %+v, wanted %+v", got, want)
 	}
+}
+
+func jsonIndent(t *testing.T, b []byte) string {
+	var out bytes.Buffer
+	err := json.Indent(&out, b, "", "  ")
+	t.Error(err)
+	return out.String()
 }

@@ -1,0 +1,137 @@
+
+[TestTyped - 1]
+{
+ "Props": {
+  "Env": {
+   "Props": {
+    "Key": {
+     "RawVal": "thing"
+    },
+    "Value": {
+     "RawVal": "stuff"
+    }
+   }
+  },
+  "Envs": {
+   "Items": [
+    {
+     "Props": {
+      "Key": {
+       "RawVal": "another"
+      },
+      "Value": {
+       "RawVal": "one"
+      }
+     }
+    }
+   ]
+  },
+  "ExcludedStr": {
+   "RawVal": null
+  },
+  "Id": {
+   "RawVal": "gabemx"
+  },
+  "Image": {
+   "RawVal": "nginx:10"
+  },
+  "IncludedStr": {
+   "RawVal": {
+    "RawVal": "included"
+   }
+  },
+  "IntNumber": {
+   "RawVal": 100
+  },
+  "IsDevelopment": {
+   "RawVal": false
+  },
+  "IsProduction": {
+   "RawVal": true
+  },
+  "MoreTags": {
+   "Items": {
+    "something": {
+     "RawVal": "else"
+    },
+    "type": {
+     "RawVal": "thing"
+    }
+   }
+  },
+  "Services": {
+   "Items": {
+    "service1": {
+     "Props": {
+      "Name": {
+       "RawVal": "service1"
+      },
+      "Port": {
+       "RawVal": 8000
+      }
+     }
+    },
+    "service2": {
+     "Props": {
+      "Name": {
+       "RawVal": "service2"
+      },
+      "Port": {
+       "RawVal": 8080
+      }
+     }
+    }
+   }
+  },
+  "Tags": {
+   "Items": [
+    {
+     "RawVal": "production"
+    },
+    {
+     "RawVal": "server"
+    }
+   ]
+  }
+ }
+}
+---
+
+[TestTyped - 2]
+{
+ "env": {
+  "key": "thing",
+  "value": "stuff"
+ },
+ "envs": [
+  {
+   "key": "another",
+   "value": "one"
+  }
+ ],
+ "id": "gabemx",
+ "image": "nginx:10",
+ "includedStr": "included",
+ "intNumber": 100,
+ "is_development": false,
+ "is_production": true,
+ "moreTags": {
+  "something": "else",
+  "type": "thing"
+ },
+ "services": {
+  "service1": {
+   "name": "service1",
+   "port": 8000
+  },
+  "service2": {
+   "name": "service2",
+   "port": 8080
+  }
+ },
+ "tags": [
+  "production",
+  "server"
+ ]
+}
+---
