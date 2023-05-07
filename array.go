@@ -14,15 +14,12 @@ type iArray interface {
 
 type Array[T any] struct {
   typedShared
+	// TODO: Add a safe `.at()` method
 	Items []T
 }
 
 func (*Array[T]) Type() Type {
 	return TypeArray
-}
-
-func (*Array[T]) Check() error {
-	return nil
 }
 
 func (s *Array[T]) anyItem() any {
@@ -44,4 +41,9 @@ func (s *Array[T]) saveItems(val *[]reflect.Value) error {
 		s.Items = append(s.Items, ttype)
 	}
   return nil
+}
+
+func NewArray[T any](items []T) Array[T] {
+	// return New[*Array[T]](items)
+	return Array[T]{Items: items}
 }

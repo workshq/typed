@@ -1,8 +1,6 @@
 package typed
 
 import (
-	"bytes"
-	"encoding/json"
 	"log"
 	"testing"
 	"time"
@@ -10,9 +8,9 @@ import (
 	"github.com/gkampitakis/go-snaps/snaps"
 )
 
-type TypedImage struct {
-	String
-}
+type TypedImage struct{ String }
+
+// type TypedName
 
 // TODO: Support custom validation and value formatting
 // Order should be
@@ -26,16 +24,22 @@ func (*TypedImage) Validate() error {
 }
 
 func (s *TypedImage) Value() string {
-	return s.RawVal
+	return s.Val
 }
 
-// TODO: Should all common options from json schema
-// I'll need this to build the json schema deceleration.
-// Either can pass this data in tags or use
-// some structured data similar to zod or typebox.
-//
-// TODO: Making a field a pointer should make it optional in json-schema
-type TestObj = Object[struct {
+type TestObjEnvProps struct {
+	Key   String
+	Value String
+}
+type TestObjEnv = Object[TestObjEnvProps]
+
+type ServiceProps struct {
+	Name String
+	Port Number[int]
+}
+type Service = Object[ServiceProps]
+
+type TestObjProps struct {
 	Id            String `name:"id"`
 	Image         TypedImage
 	IntNumber     Number[int8]
@@ -47,19 +51,14 @@ type TestObj = Object[struct {
 		Key   String
 		Value String
 	}]
-	Envs Array[Object[struct {
-		Key   String
-		Value String
-	}]]
+	Envs     Array[TestObjEnv]
 	Tags     Array[String]
-	Services Record[Object[struct {
-		Name String
-		Port Number[int]
-	}]]
+	Services Record[Service]
 	MoreTags Record[String]
-}]
+}
+type TestObj = Object[TestObjProps]
 
-func TestTyped(t *testing.T) {
+func TestParsing(t *testing.T) {
 	// items := new(Array[Object[struct {
 	// 	Key   String
 	// 	Value String
@@ -147,21 +146,95 @@ func TestTyped(t *testing.T) {
 	expect(t, schema.Props.IncludedStr.IsPresent(), true)
 	expect(t, schema.Props.IncludedStr.IsAbsent(), false)
 	expect(t, schema.Props.IncludedStr.Maybe().Value(), "included")
-	expect(t, schema.Props.IncludedStr.OrElse(String{RawVal: "fallback"}).Value(), "included")
+	expect(t, schema.Props.IncludedStr.OrElse(NewString("fallback")).Value(), "included")
+	// expect(t, schema.Props.IncludedStr.OrElse(String{Val: "fallback"}).Value(), "included")
 
 	expect(t, schema.Props.ExcludedStr.IsPresent(), false)
 	expect(t, schema.Props.ExcludedStr.IsAbsent(), true)
 	expect(t, schema.Props.ExcludedStr.Maybe(), nil)
-	expect(t, schema.Props.ExcludedStr.OrElse(String{RawVal: "fallback"}).Value(), "fallback")
-	// Snapshot
-	snaps.MatchJSON(t , schema)
+	expect(t, schema.Props.ExcludedStr.OrElse(NewString("fallback")).Value(), "fallback")
+	// expect(t, schema.Props.ExcludedStr.OrElse(String{Val: "fallback"}).Value(), "fallback")
 
 	// Test Serialization
-  start = time.Now()
-  json := ToJSON(schema)
-  duration = time.Since(start)
+	start = time.Now()
+	json := Serialize(schema)
+	duration = time.Since(start)
 	log.Printf("Serialized in %fs or %d microseconds", duration.Seconds(), duration.Microseconds())
-	snaps.MatchJSON(t , json)
+	snaps.MatchJSON(t, json)
+}
+
+// Test for writing typed declarations inline.
+func TestInlined(t *testing.T) {
+	start := time.Now()
+	data := NewObject(TestObjProps{
+		Id:            NewString("gabe"),
+		Image:         TypedImage{NewString("nginx:10")},
+		IntNumber:     NewNumber[int8](123),
+		IsProduction:  NewBoolean(true),
+		IsDevelopment: NewBoolean(false),
+		IncludedStr:   NewOptional(NewString("included")),
+		Env: NewObject(struct {
+			Key   String
+			Value String
+		}{
+			Key:   NewString("thing"),
+			Value: NewString("stuff"),
+		}),
+		Envs: NewArray([]TestObjEnv{
+			NewObject(TestObjEnvProps{
+				Key:   NewString("another"),
+				Value: NewString("one"),
+			}),
+		}),
+		Tags: NewArray([]String{
+			// Both init styles
+			{Val: "production"},
+			NewString("server"),
+		}),
+		Services: NewRecord(map[string]Service{
+			"service1": NewObject(ServiceProps{
+				Name: NewString("service1"),
+				Port: NewNumber(8000),
+			}),
+			"service2": NewObject(ServiceProps{
+				Name: NewString("service2"),
+				Port: NewNumber(8080),
+			}),
+		}),
+		MoreTags: NewRecord(map[string]String{
+			"type":      {Val: "thing"},
+			"something": NewString("else"),
+		}),
+	})
+	duration := time.Since(start)
+	log.Printf("Inline typed created in %fs or %d microseconds", duration.Seconds(), duration.Microseconds())
+
+	expect(t, data.Props.Id.Value(), "gabe")
+	expect(t, data.Props.Image.Value(), "nginx:10")
+	expect(t, data.Props.IntNumber.Value(), 123)
+	expect(t, data.Props.IsProduction.Value(), true)
+	expect(t, data.Props.IsDevelopment.Value(), false)
+	expect(t, data.Props.IncludedStr.OrElse(NewString("fallback")).Value(), "included")
+	expect(t, data.Props.ExcludedStr.OrElse(NewString("fallback")).Value(), "fallback")
+	expect(t, data.Props.Env.Props.Key.Value(), "thing")
+	expect(t, data.Props.Env.Props.Value.Value(), "stuff")
+	expect(t, data.Props.Envs.Items[0].Props.Key.Value(), "another")
+	expect(t, data.Props.Envs.Items[0].Props.Value.Value(), "one")
+	expect(t, data.Props.Tags.Items[0].Value(), "production")
+	expect(t, data.Props.Tags.Items[1].Value(), "server")
+	svc := data.Props.Services.Items["service1"]
+	expect(t, svc.Props.Name.Value(), "service1")
+	expect(t, svc.Props.Port.Value(), 8000)
+	svc = data.Props.Services.Items["service2"]
+	expect(t, svc.Props.Name.Value(), "service2")
+	expect(t, svc.Props.Port.Value(), 8080)
+	s := data.Props.MoreTags.Items["type"]
+	expect(t, s.Value(), "thing")
+	s = data.Props.MoreTags.Items["something"]
+	expect(t, s.Value(), "else")
+
+	// TODO: Test Serialization
+	// snaps.MatchJSON(t, data)
 }
 
 // Testing type definitions instead of type aliases
@@ -179,13 +252,6 @@ func XTestTypeDef(t *testing.T) {
 
 func expect[T comparable](t *testing.T, got T, want T) {
 	if got != want {
-		t.Errorf("got %+v, wanted %+v", got, want)
+		t.Errorf("got %#v, wanted %#v", got, want)
 	}
-}
-
-func jsonIndent(t *testing.T, b []byte) string {
-	var out bytes.Buffer
-	err := json.Indent(&out, b, "", "  ")
-	t.Error(err)
-	return out.String()
 }

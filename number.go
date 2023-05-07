@@ -20,10 +20,6 @@ func (*Number[T]) Type() Type {
 	return TypeNumber
 }
 
-func (*Number[T]) Check() error {
-	return nil
-}
-
 func (s *Number[T]) Value() T {
 	return s.RawVal
 }
@@ -80,4 +76,9 @@ func parseNumber[T NumberType](jsonVal *fastjson.Value) (T, error) {
 func checkImplements[I any, T any](check T) bool {
 	_, ok := interface{}(check).(I)
 	return ok
+}
+
+func NewNumber[T NumberType](num T) Number[T] {
+	// return *New[*Number[T]](num)
+	return Number[T]{RawVal: num}
 }

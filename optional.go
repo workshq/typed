@@ -6,6 +6,8 @@ import (
 	"github.com/valyala/fastjson"
 )
 
+// TODO: Change to "Typed" constraint.
+// This will force all implementations to be pointers.
 type Optional[T any] struct {
   typedShared
 	RawVal *T
@@ -13,10 +15,6 @@ type Optional[T any] struct {
 
 func (*Optional[T]) Type() Type {
 	return TypeOptional
-}
-
-func (*Optional[T]) Check() error {
-	return nil
 }
 
 // True if Optional Value is present
@@ -60,4 +58,10 @@ func (s *Optional[T]) parseValue(val *fastjson.Value) error {
   // logger.Log.Printf("parsing %+v %T", t, t)
   typed := any(t).(Typed)
   return parse(val, typed)
+}
+
+// TODO: Get this working correctly
+func NewOptional[T any](typed T) Optional[T] {
+  // return New[*Optional[T]](typed)
+  return Optional[T]{RawVal: &typed}
 }

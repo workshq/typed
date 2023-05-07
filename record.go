@@ -23,10 +23,6 @@ func (*Record[T]) Type() Type {
 	return TypeRecord
 }
 
-func (*Record[T]) Check() error {
-	return nil
-}
-
 func (s *Record[T]) anyItem() any {
 	var item T
 	return &item
@@ -44,4 +40,9 @@ func (s *Record[T]) saveItems(val *map[string]reflect.Value) error {
 		s.Items[key] = ttype
 	}
   return nil
+}
+
+func NewRecord[T any](items map[string]T) Record[T] {
+	// return New[*Record[T]](items)
+	return Record[T]{Items: items}
 }

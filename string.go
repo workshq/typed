@@ -6,11 +6,7 @@ import (
 
 type String struct {
 	typedShared
-	RawVal string
-}
-
-func (*String) Check() error {
-	return nil
+	Val string
 }
 
 func (*String) Type() Type {
@@ -18,7 +14,7 @@ func (*String) Type() Type {
 }
 
 func (s *String) Value() string {
-	return s.RawVal
+	return s.Val
 }
 
 func (s *String) parseValue(val *fastjson.Value) error {
@@ -28,6 +24,11 @@ func (s *String) parseValue(val *fastjson.Value) error {
 	}
   data := string(bytes)
 	// logger.Log.Printf("PARSING %s %T", data, data)
-	s.RawVal = data
+	s.Val = data
 	return nil
+}
+
+func NewString(val string) String {
+	// return New[String](val)
+	return String{Val: val}
 }

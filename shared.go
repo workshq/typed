@@ -4,15 +4,15 @@ import "github.com/valyala/fastjson"
 
 // Common default methods for all Typed
 type typedShared struct {
-	val *fastjson.Value
+	jsonVal *fastjson.Value
 }
 
-func (s *typedShared) getVal() *fastjson.Value {
-	return s.val
+func (s *typedShared) getJsonVal() *fastjson.Value {
+	return s.jsonVal
 }
 
-func (s *typedShared) setVal(val *fastjson.Value) {
-	s.val = val
+func (s *typedShared) setJsonVal(val *fastjson.Value) {
+	s.jsonVal = val
 }
 
 func (*typedShared) Check() error {

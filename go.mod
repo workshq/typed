@@ -6,6 +6,7 @@ require github.com/valyala/fastjson v1.6.4
 
 require (
 	github.com/gkampitakis/go-snaps v0.4.2
+	github.com/samber/lo v1.38.1
 	golang.org/x/exp v0.0.0-20230310171629-522b1b587ee0
 )
 

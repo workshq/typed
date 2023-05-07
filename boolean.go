@@ -4,19 +4,15 @@ import "github.com/valyala/fastjson"
 
 type Boolean struct {
 	typedShared
-	RawVal bool
+	val bool
 }
 
 func (*Boolean) Type() Type {
 	return TypeBoolean
 }
 
-func (*Boolean) Check() error {
-	return nil
-}
-
 func (s *Boolean) Value() bool {
-	return s.RawVal
+	return s.val
 }
 
 func (s *Boolean) parseValue(val *fastjson.Value) error {
@@ -24,7 +20,13 @@ func (s *Boolean) parseValue(val *fastjson.Value) error {
 	if err != nil {
 		return err
 	}
+	// TODO: setJsonVal and remove `setJsonVal` from typedShared
 	// logger.Log.Println("PARSING", val)
-	s.RawVal = b
+	s.val = b
 	return nil
+}
+
+func NewBoolean(val bool) Boolean {
+	// return *New[*Boolean](val)
+	return Boolean{val: val}
 }

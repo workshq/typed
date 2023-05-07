@@ -15,8 +15,8 @@ import (
 
 type Typed interface {
 	parseValue(val *fastjson.Value) error
-	getVal() *fastjson.Value
-	setVal(val *fastjson.Value)
+	getJsonVal() *fastjson.Value
+	setJsonVal(val *fastjson.Value)
 	Type() Type
 	Check() error
 }
@@ -62,7 +62,7 @@ func parse(val *fastjson.Value, typed Typed) error {
 	case TypeRecord:
 		parseErr = parseRecord(val, typed.(iRecord))
 	case TypeString, TypeNumber, TypeBoolean, TypeOptional:
-		typed.setVal(val)
+		typed.setJsonVal(val)
 		parseErr = typed.parseValue(val)
 	default:
 		return fmt.Errorf("unsupported type %s from %T", t.String(), typed)
@@ -84,7 +84,7 @@ func parseObject(raw *fastjson.Value, typed iObject) error {
 	if err != nil {
 		return err
 	}
-	typed.setVal(raw)
+	typed.setJsonVal(raw)
 	props := typed.anyProps()
 	// logger.Log.Printf("Props %+v", props)
 	r := reflect.ValueOf(props).Elem()
@@ -136,7 +136,7 @@ func parseArray(raw *fastjson.Value, typed iArray) error {
 	if err != nil {
 		return err
 	}
-	typed.setVal(raw)
+	typed.setJsonVal(raw)
 	item := typed.anyItem()
 	// logger.Log.Printf("Array %+v", item)
 	// items := typed.allItems()
@@ -176,7 +176,7 @@ func parseRecord(raw *fastjson.Value, typed iRecord) error {
 	if err != nil {
 		return err
 	}
-	typed.setVal(raw)
+	typed.setJsonVal(raw)
 	item := typed.anyItem()
 	// logger.Log.Printf("Record %+v", item)
 	innerVal := reflect.ValueOf(item).Elem()
@@ -215,8 +215,19 @@ func lowerInitial(str string) string {
 	return str
 }
 
+// TODO: New doesn't store any value yet
+func New[T any](val any) T {
+	// var typed T
+	typed := new(T)
+	// TODO: Need to export fastjson.Value properties
+	// so I can create them inline without parsing.
+	// typed.setVal()
+	// typed.parseValue()
+	return *typed
+}
+
 // Serialized the Typed nodes to JSON
-func ToJSON(typed Typed) []byte {
-	val := typed.getVal()
+func Serialize(typed Typed) []byte {
+	val := typed.getJsonVal()
 	return val.MarshalTo([]byte{})
 }
